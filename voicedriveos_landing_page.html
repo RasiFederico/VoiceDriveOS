@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceDriveOS — Local AI. Voice Control. Zero Cloud.</title>
+    <meta name="description" content="VoiceDriveOS is an open-source local voice-to-action AI assistant designed to turn natural speech into fast, deterministic computer actions.">
+    
+    <!-- Open Graph Metadata -->
+    <meta property="og:title" content="VoiceDriveOS — Local AI. Voice Control. Zero Cloud.">
+    <meta property="og:description" content="An open-source local voice-to-action AI assistant. Turn natural speech into fast, deterministic computer actions.">
+    <meta property="og:type" content="website">
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --bg-color: #050505;
+            --surface-color: #111111;
+            --surface-light: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-color: #00f0ff;
+            --accent-glow: rgba(0, 240, 255, 0.15);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        /* Reset & Base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            line-height: 1.1;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Layout & Containers */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            padding: 8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(5, 5, 5, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .btn {
+            background: var(--text-primary);
+            color: var(--bg-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-light);
+            border-color: var(--text-secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 12rem 0 8rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            width: 400px;
+            height: 400px;
+            background: var(--accent-glow);
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            max-width: 90%;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Interactive Pipeline Visual */
+        .pipeline-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        .pipeline-node {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: default;
+        }
+
+        .pipeline-node:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: translateX(5px);
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-light);
+            border-radius: 6px;
+            color: var(--accent-color);
+        }
+
+        .node-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .node-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            position: absolute;
+            right: 1rem;
+            transition: opacity 0.3s;
+        }
+
+        .pipeline-node:hover .node-desc {
+            opacity: 1;
+        }
+
+        /* Live Command Demo */
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .demo-controls {
+            padding: 2rem;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .demo-controls h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .command-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .command-btn:hover, .command-btn.active {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        .demo-ui {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .fake-os-window {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .fake-os-header {
+            height: 30px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            gap: 0.5rem;
+        }
+
+        .fake-os-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #555;
+        }
+
+        .fake-os-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .fake-button {
+            padding: 0.75rem 1.5rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #eee;
+            width: fit-content;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .fake-button.highlight {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .demo-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 12, 0.9);
+            border: 1px solid var(--accent-color);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* Not Another Chatbot */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .comparison-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+        }
+
+        .comparison-card h3 {
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-card.vdos h3 {
+            color: var(--text-primary);
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-card.vdos .flow-step {
+            color: var(--text-primary);
+        }
+
+        .flow-arrow {
+            width: 2px;
+            height: 20px;
+            background: var(--border-color);
+            margin: 0.25rem 0 0.25rem 0.5rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 4rem;
+        }
+
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: var(--surface-light);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Code/Terminal */
+        .terminal {
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #a1a1aa;
+            overflow-x: auto;
+        }
+
+        .terminal .prompt {
+            color: #00f0ff;
+            margin-right: 0.5rem;
+        }
+
+        .terminal .cmd {
+            color: #fff;
+        }
+
+        /* Roadmap */
+        .roadmap {
+            border-left: 1px solid var(--border-color);
+            padding-left: 2rem;
+            margin-top: 4rem;
+        }
+
+        .roadmap-item {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 2px solid var(--text-secondary);
+        }
+
+        .roadmap-item.active::before {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .roadmap-item h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .roadmap-item ul {
+            list-style: disc;
+            padding-left: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 0;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 8rem 0 4rem;
+            }
+            .hero h1 { font-size: 3rem; }
+            .demo-container { grid-template-columns: 1fr; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" x2="12" y1="19" y2="22"></line>
+                </svg>
+                VoiceDriveOS
+            </a>
+            <div class="nav-links">
+                <a href="#how-it-works">How it works</a>
+                <a href="#architecture">Architecture</a>
+                <a href="#roadmap">Roadmap</a>
+                <a href="#download" class="btn btn-outline">Download</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero container reveal">
+        <div class="hero-content">
+            <div class="badge">
+                <span style="color:var(--accent-color)">●</span> OPEN SOURCE · LOCAL AI · OFFLINE
+            </div>
+            <h1 class="text-gradient">Control your computer.<br>Just speak.</h1>
+            <p>VoiceDriveOS turns natural voice commands into fast, deterministic computer actions — locally, privately, and without the cloud.</p>
+            <div class="hero-cta">
+                <a href="#download" class="btn">Get VoiceDriveOS</a>
+                <a href="#architecture" class="btn btn-outline">Under the Hood</a>
+            </div>
+        </div>
+        
+        <div class="pipeline-visual" aria-hidden="true">
+            <div class="pipeline-node">
+                <div class="node-icon">MIC</div>
+                <div class="node-text">Voice Input</div>
+                <div class="node-desc">Local Microphone</div>
+            </div>
+            <div class="pipeline-node">
+                <div class="node-icon">STT</div>
+                <div class="node-text">faster-whisper</div>
+                <div class="node-desc">Offline Transcription</div>
+            </div>
+            <div class="pipeline-node">
+                <div class="node-icon">INT</div>
+                <div class="node-text">Intent parsing</div>
+                <div class="node-desc">Constraint space</div>
+            </div>
+            <div class="pipeline-node">
+                <div class="node-icon">VIS</div>
+                <div class="node-text">OmniParser V2</div>
+                <div class="node-desc">Screen Understanding</div>
+            </div>
+            <div class="pipeline-node">
+                <div class="node-icon">DEC</div>
+                <div class="node-text">Laya Core</div>
+                <div class="node-desc">Action Selection</div>
+            </div>
+            <div class="pipeline-node" style="border-color: var(--accent-color);">
+                <div class="node-icon" style="color:var(--bg-color); background:var(--accent-color)">EXE</div>
+                <div class="node-text">Deterministic Execution</div>
+                <div class="node-desc">PyAutoGUI / OS</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="section container reveal" id="demo">
+        <div class="text-center mb-8">
+            <h2 class="text-gradient" style="font-size: 2.5rem;">Speak. It understands. It acts.</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 1rem auto;">
+                Experience the pipeline. VoiceDriveOS processes the command, finds the visual target, and executes deterministically.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="demo-controls">
+                <h3>Simulate Command</h3>
+                <button class="command-btn" data-target="btn-settings">"Click settings"</button>
+                <button class="command-btn" data-target="btn-login">"Click the login button"</button>
+                <button class="command-btn" data-target="btn-search">"Search for something"</button>
+            </div>
+            <div class="demo-ui">
+                <div class="fake-os-window">
+                    <div class="fake-os-header">
+                        <div class="fake-os-dot"></div>
+                        <div class="fake-os-dot"></div>
+                        <div class="fake-os-dot"></div>
+                    </div>
+                    <div class="fake-os-body">
+                        <div style="display:flex; justify-content:space-between; width:100%">
+                            <div class="fake-button" id="btn-settings">⚙ Settings</div>
+                            <div class="fake-button" id="btn-login">Login</div>
+                        </div>
+                        <div style="margin-top: auto;">
+                            <div class="fake-button" id="btn-search" style="width:100%; text-align:left; color:#888;">Search...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-status" id="demo-status-box">Ready</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container reveal">
+        <div class="text-center mb-8">
+            <h2 class="text-gradient" style="font-size: 2.5rem;">Not another chatbot.</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 1rem auto;">
+                Traditional AI assistants generate conversational responses. VoiceDriveOS is built to recognize intent and execute actions.
+            </p>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <h3>Traditional Assistant</h3>
+                <div class="flow-step">1. Voice Input</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">2. Cloud LLM</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">3. Reasoning & Generation</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">4. Generated Text Response</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">5. Complex Interpretation</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step" style="color: #ef4444;">6. Slow, unpredictable action</div>
+            </div>
+            <div class="comparison-card vdos">
+                <h3>VoiceDriveOS</h3>
+                <div class="flow-step">1. Voice Input</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">2. Local Recognition (STT)</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">3. Intent Classification (Laya)</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step">4. Action Selection</div>
+                <div class="flow-arrow"></div>
+                <div class="flow-step" style="color: var(--accent-color);">5. Fast, Deterministic Execution</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container reveal" id="how-it-works">
+        <h2 class="text-gradient text-center" style="font-size: 2.5rem; margin-bottom: 3rem;">Built around four principles</h2>
+        <div class="cards-grid" style="margin-top: 0;">
+            <div class="card">
+                <h3>Local First</h3>
+                <p>Your commands stay on your machine. No cloud API required for core functionality.</p>
+            </div>
+            <div class="card">
+                <h3>Open Source</h3>
+                <p>Built completely around open technologies and open-weight models.</p>
+            </div>
+            <div class="card">
+                <h3>Low Latency</h3>
+                <p>Avoid unnecessary generation and repeated inference. Designed for speed.</p>
+            </div>
+            <div class="card">
+                <h3>Lightweight</h3>
+                <p>Designed to run on normal consumer hardware with a ~1.5 GB memory target for the core intelligence.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container reveal" id="architecture">
+        <h2 class="text-gradient mb-4" style="font-size: 2.5rem;">AI chooses. Code executes.</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin-bottom: 3rem;">
+            Security and reliability are paramount. VoiceDriveOS operates within a closed action space. The AI classifies the intent, but the execution layer runs deterministic Python code.
+        </p>
+
+        <div style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; font-family: var(--font-mono); font-size: 0.9rem;">
+            <div style="color: var(--text-secondary);">// 1. AI Output from Laya</div>
+            <div style="color: #fff;">
+                {<br>
+                &nbsp;&nbsp;"action": "click",<br>
+                &nbsp;&nbsp;"target_id": 7<br>
+                }
+            </div>
+            <div style="color: var(--accent-color);">↓ Validation against Action Schema</div>
+            <div style="color: #fff;">executor.execute(action)</div>
+            <div style="color: var(--accent-color);">↓ Deterministic Execution</div>
+            <div style="color: #fff;">pyautogui.click(x, y)</div>
+        </div>
+    </section>
+
+    <section class="section container reveal">
+        <h2 class="text-gradient mb-4" style="font-size: 2.5rem;">Built for developers.</h2>
+        <div class="cards-grid" style="margin-top: 2rem; grid-template-columns: 1fr 1fr;">
+            <div>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    Leveraging a modern, asynchronous Python stack. Built for modularity, testability, and extreme performance on local hardware.
+                </p>
+                <ul style="color: var(--text-primary); display: flex; flex-direction: column; gap: 0.5rem; font-weight: 500;">
+                    <li>✓ Python 3.11+</li>
+                    <li>✓ faster-whisper</li>
+                    <li>✓ Laya Core</li>
+                    <li>✓ Microsoft OmniParser V2</li>
+                    <li>✓ PyAutoGUI & pyperclip</li>
+                    <li>✓ asyncio & threading</li>
+                </ul>
+            </div>
+            <div class="terminal">
+                <div><span class="prompt">$</span><span class="cmd">git clone https://github.com/federicorasi/VoiceDriveOS</span></div>
+                <div><span class="prompt">$</span><span class="cmd">cd VoiceDriveOS</span></div>
+                <div><span class="prompt">$</span><span class="cmd">pip install -r requirements.txt</span></div>
+                <div><span class="prompt">$</span><span class="cmd">python -m app.main</span></div>
+                <div style="margin-top: 1rem; color: #555;">[INFO] Initializing Audio Pipeline...</div>
+                <div style="color: #555;">[INFO] System Ready. Listening...</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container reveal" id="roadmap">
+        <h2 class="text-gradient mb-8" style="font-size: 2.5rem;">Roadmap</h2>
+        <div class="roadmap">
+            <div class="roadmap-item active">
+                <h4>Phase 1: Core Architecture</h4>
+                <ul>
+                    <li>Voice pipeline & fast STT</li>
+                    <li>Command parser</li>
+                    <li>Deterministic executor</li>
+                    <li>Vision abstraction layer</li>
+                </ul>
+            </div>
+            <div class="roadmap-item">
+                <h4>Phase 2: Intelligence Integration (Planned)</h4>
+                <ul>
+                    <li>Improved computer vision (OmniParser)</li>
+                    <li>Laya integration for intent</li>
+                    <li>Performance optimization</li>
+                </ul>
+            </div>
+            <div class="roadmap-item">
+                <h4>Phase 3: Production (Concept)</h4>
+                <ul>
+                    <li>Cross-platform improvements</li>
+                    <li>Executable Packaging (PyInstaller/Nuitka)</li>
+                    <li>Desktop UI</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section container reveal text-center" style="border-bottom: none;" id="download">
+        <h2 class="text-gradient mb-4" style="font-size: 3rem;">Get VoiceDriveOS</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem;">
+            There are two ways to get started. You can either download the <strong>ready-to-use precompiled version</strong> for an immediate setup, or <strong>clone the full repository</strong> from GitHub to build, modify, and contribute to the source code yourself.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="#" class="btn">Download Precompiled (.exe)</a>
+            <a href="https://github.com/federicorasi/VoiceDriveOS" target="_blank" class="btn btn-outline">Clone Full Repository</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="logo" style="justify-content: center; margin-bottom: 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" x2="12" y1="19" y2="22"></line>
+                </svg>
+                VoiceDriveOS
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Local voice → action computing.</p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                Created by <a href="https://github.com/federicorasi" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Federico Rasi</a>
+            </p>
+            <div class="footer-links">
+                <a href="https://github.com/federicorasi/VoiceDriveOS" target="_blank">GitHub</a>
+                <a href="#">Documentation</a>
+                <a href="#roadmap">Roadmap</a>
+                <a href="#">License</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll Reveal Logic
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger on load
+
+        // Interactive Demo Logic
+        const commandBtns = document.querySelectorAll('.command-btn');
+        const statusBox = document.getElementById('demo-status-box');
+        
+        const resetDemo = () => {
+            document.querySelectorAll('.fake-button').forEach(btn => btn.classList.remove('highlight'));
+            statusBox.style.opacity = '0';
+        };
+
+        const runSimulation = async (targetId) => {
+            const sequence = [
+                { text: "Voice detected...", delay: 600 },
+                { text: "Transcribing (faster-whisper)...", delay: 800 },
+                { text: "Finding target (Vision)...", delay: 800 },
+                { text: "Action selected (Laya)...", delay: 600 },
+                { text: "Click executed!", delay: 500 }
+            ];
+
+            statusBox.style.opacity = '1';
+            
+            for (let step of sequence) {
+                statusBox.innerText = step.text;
+                await new Promise(r => setTimeout(r, step.delay));
+            }
+
+            const targetBtn = document.getElementById(targetId);
+            if(targetBtn) {
+                targetBtn.classList.add('highlight');
+                setTimeout(() => {
+                    targetBtn.classList.remove('highlight');
+                    statusBox.style.opacity = '0';
+                }, 1500);
+            } else {
+                statusBox.style.opacity = '0';
+            }
+        };
+
+        commandBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Reset states
+                commandBtns.forEach(b => b.classList.remove('active'));
+                resetDemo();
+                
+                // Set active
+                e.target.classList.add('active');
+                
+                // Run sim
+                const target = e.target.getAttribute('data-target');
+                runSimulation(target);
+            });
+        });
+
+        // Navbar blur on scroll
+        const navbar = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            if(window.scrollY > 50) {
+                navbar.style.background = 'rgba(5, 5, 5, 0.9)';
+                navbar.style.borderBottom = '1px solid var(--border-color)';
+            } else {
+                navbar.style.background = 'rgba(5, 5, 5, 0.7)';
+                navbar.style.borderBottom = '1px solid transparent';
+            }
+        });
+    </script>
+</body>
+</html>

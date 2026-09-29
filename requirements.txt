@@ -1,0 +1,48 @@
+# VoiceDriveOS — Python dependencies
+# Target: Python 3.11+
+#
+# Install with:
+#   pip install -r requirements.txt
+
+# ---------------------------------------------------------------------------
+# Runtime — core (needed to import and unit-test the codebase)
+# ---------------------------------------------------------------------------
+numpy>=1.26,<3.0          # VAD energy computation, PCM<->float32 conversion
+pillow>=10.0               # screenshot decoding/downscaling (vision.screen_capture)
+
+# ---------------------------------------------------------------------------
+# Runtime — perception layer (required for REAL microphone/STT, not for tests)
+# ---------------------------------------------------------------------------
+sounddevice>=0.4.6         # microphone capture (audio.microphone) — requires PortAudio
+faster-whisper>=1.2.1      # offline speech-to-text (local-only model loading)
+
+# ---------------------------------------------------------------------------
+# Runtime — vision layer (required for REAL screen capture, not for tests)
+# ---------------------------------------------------------------------------
+mss>=9.0                   # cross-platform screenshot capture (vision.screen_capture)
+rapidocr>=3.9.2,<4.0        # local OCR for visible app/browser labels (vision.ui_parser)
+onnxruntime>=1.20,<2.0      # CPU inference engine for RapidOCR
+pywinauto>=0.6.8            # Windows UI Automation tree (vision.uia_parser)
+
+# ---------------------------------------------------------------------------
+# Runtime — decision model (local weights; no hosted inference/API charges)
+# ---------------------------------------------------------------------------
+laya>=0.3.20,<0.4            # Convai Innovations' local typed decision model
+
+# ---------------------------------------------------------------------------
+# Runtime — execution layer (required for REAL mouse/keyboard/clipboard control)
+# ---------------------------------------------------------------------------
+pyautogui>=0.9.54          # mouse/keyboard control (execution.mouse / execution.keyboard)
+pyperclip>=1.8             # clipboard control (execution.clipboard)
+
+# ---------------------------------------------------------------------------
+# Development / testing
+# ---------------------------------------------------------------------------
+pytest>=8.0                 # test runner (tests/ also run with `python -m unittest`)
+pytest-cov>=5.0              # coverage reporting
+
+# ---------------------------------------------------------------------------
+# Packaging
+# ---------------------------------------------------------------------------
+pyinstaller>=6.0            # single-file desktop executable
+# nuitka>=2.0               # alternative compiler, uncomment to evaluate
